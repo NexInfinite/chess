@@ -7,7 +7,7 @@ You will need to install:
  - python-chess
  - reportlabs
  - svglib
- - PIL
+ - PIL (Python Image Library - Pillow)
 
 You will also need a bot token from https://discord.com/developers/applications. A good tutorial is found here: https://discordpy.readthedocs.io/en/latest/discord.html. 
 
