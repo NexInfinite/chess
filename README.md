@@ -1,6 +1,15 @@
 # Chess Discord Bot
 This was meant to be a commission, but they guy never paid so im going to release it to the public!
 
+# Commands
+Prefix: 
+ - c!
+Commands:
+ - help
+ - start <user>
+
+Thats it! Really simple and fun bot to use! If you want to invite the hosted bot click here: *WORKING ON HOSTING, PLEASE WAIT*
+
 # Setup
 You will need to install:
  - discord
