@@ -8,7 +8,7 @@ Commands:
  - help
  - start <user>
 
-Thats it! Really simple and fun bot to use! If you want to invite the hosted bot click here: *WORKING ON HOSTING, PLEASE WAIT*
+Thats it! Really simple and fun bot to use! If you want to invite the hosted bot click here: https://discord.com/api/oauth2/authorize?client_id=716382796108660826&permissions=388160&scope=bot
 
 # Setup
 You will need to install:
