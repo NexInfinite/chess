@@ -121,8 +121,8 @@ async def board_move(player, board, ctx, bot):
             return True
         else:
             # proves if the move is possible
-            if board.parse_san(m.content):
-                move = board.parse_san(m.content)
+            if board.parse_san(message.content):
+                move = board.parse_san(message.content)
                 embed = discord.Embed(title=f"Move",
                                       description=f"{player.mention} moved {move.from_square} to {move.to_square}!",
                                       color=discord.Color.green())
