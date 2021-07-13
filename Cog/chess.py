@@ -9,6 +9,7 @@ from discord.ext import commands
 from reportlab.graphics import renderPM
 from svglib.svglib import svg2rlg
 from PIL import Image
+message_on_error = True
 
 
 class Chess(commands.Cog, name="Chess"):
@@ -82,9 +83,20 @@ async def board_move(player, board, ctx, bot):
     turn_loop = True
     while turn_loop:
         # Make it a loop so if they make a mistake they can have more attempts
+        # could be removed with the check in wait_for message, but could be used if you want an message on error
         try:
+            #to check if a message is a move
+            def movecheck(m):
+                if not m.author == player:
+                    return False
+                if m.content.lower() == "cancel":
+                    return True
+                if message_on_error:
+                    return True
+                # to check if a move is legal
+                return board.parse_san(m.content)
             # Wait for message
-            message = await bot.wait_for("message", check=lambda m: m.author == player)
+            message = await bot.wait_for("message", check=movecheck)
         except asyncio.TimeoutError:
             # That awkward moment they leave you on read (You left them speechless!)
             # Basically we want to cancel the game tbf
@@ -108,59 +120,41 @@ async def board_move(player, board, ctx, bot):
                 pass
             return True
         else:
-            # If they didnt say cancel then lets see if we can play the game!
-            try:
-                # We are tying to see if they added a comma split. You can change this i guess!
-                # Moves will be from positions on the board
-                split = message.content.split(", ")
-                move_from = split[0]
-                move_to = split[1]
-                joined = "".join(split)
-                try:
-                    # Get the move
-                    move = chess.Move.from_uci(joined)
-                    if move in board.legal_moves:
-                        # Check if the move was valid
-                        embed = discord.Embed(title=f"Move",
-                                              description=f"{player.mention} moved {move_from} to {move_to}!",
-                                              color=discord.Color.green())
-                        await ctx.send(embed=embed)
-                        await player.send(embed=embed)
-                        # Make the move on the board
-                        board.push(move)
-                        # Remake the image and send it back out!
-                        # This is a repeat from earlier
-                        img = chess.svg.board(board=board)
-                        outputfile = open('chess_board.svg', "w")
-                        outputfile.write(img)
-                        outputfile.close()
-                        drawing = svg2rlg("chess_board.svg")
-                        renderPM.drawToFile(drawing, "chess_board.png", fmt="PNG")
-                        # Send the image
-                        await ctx.send(file=discord.File(fp="chess_board.png"))
-                        # Stop their turn
-                        turn_loop = False
-                    else:
-                        # If the move wasn't valid
-                        embed = discord.Embed(title=f"Error",
-                                              description=f"The move you just attempted is not legal! Remember, you are whites. "
-                                                          f"Please try again.",
-                                              color=discord.Color.red())
-                        await player.send(embed=embed)
-                    # Delete the messages to make it a little nicer
-                    # This, again, is a copy from above
-                    delete_array = [message]
-                    try:
-                        await ctx.channel.delete_messages(delete_array)
-                    except Exception as e:
-                        print(e)
-                        pass
-                except ValueError:
-                    pass
-            except Exception as e:
-                # If they didnt do the correct syntax
-                embed = discord.Embed(title=f"Error",
-                                      description=f"You did not use the correct syntax. Please do `piece, new position`",
-                                      color=discord.Color.red())
-                embed.set_footer(text=e)
+            # proves if the move is possible
+            if board.parse_san(m.content):
+                move = board.parse_san(m.content)
+                embed = discord.Embed(title=f"Move",
+                                      description=f"{player.mention} moved {move.from_square} to {move.to_square}!",
+                                      color=discord.Color.green())
+                await ctx.send(embed=embed)
                 await player.send(embed=embed)
+                # Make the move on the board
+                board.push(move)
+                # Remake the image and send it back out!
+                # This is a repeat from earlier
+                img = chess.svg.board(board=board)
+                outputfile = open('chess_board.svg', "w")
+                outputfile.write(img)
+                outputfile.close()
+                drawing = svg2rlg("chess_board.svg")
+                renderPM.drawToFile(drawing, "chess_board.png", fmt="PNG")
+                # Send the image
+                await ctx.send(file=discord.File(fp="chess_board.png"))
+                # Stop their turn
+                turn_loop = False
+            else:
+                # If the move wasn't valid
+                embed = discord.Embed(title=f"Error",
+                                      description=f"The move you just attempted is not legal! Remember, you are whites. "
+                                                  f"Please try again."
+                                                  f"Or the syntax is not correct.",
+                                      color=discord.Color.red())
+                await player.send(embed=embed)
+            # Delete the messages to make it a little nicer
+            # This, again, is a copy from above
+            delete_array = [message]
+            try:
+                await ctx.channel.delete_messages(delete_array)
+            except Exception as e:
+                print(e)
+                pass
